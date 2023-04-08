@@ -1,11 +1,4 @@
-Code adapted from [lachinov/brats2018-graphlabunn (github.com)](https://github.com/lachinov/brats2018-graphlabunn)
-
-Code partially changed
-
-Data already augmented at \training_data\numpy_dataset folder
-
 # Cascaded UNet for brain tumor segmentation
-
 ![Segmentation](media/brats.gif)  
 This code was written for participation in the [Brain Tumor Segmentation Challenge](https://www.med.upenn.edu/sbia/brats2018.html) (BraTS) 2018.  
 The code is based on [the corresponding paper](https://arxiv.org/abs/1810.04008), where we present deep cascaded approach for automatic brain tumor segmentation. We modify 3D UNet architecture and implement specific augmentation strategy to efficiently handle multimodal MRI input, besides this we introduce approach to enhance segmentation quality with context obtained from models of the same topology operating on downscaled data.  
