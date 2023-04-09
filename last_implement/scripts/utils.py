@@ -13,7 +13,7 @@ def transform_to_center_size_format(bboxes):
 
 def read_numpy(data_path, series_name, suffix):
     filename = os.path.join(data_path,series_name+suffix)
-    return np.load(filename)
+    return np.load(filename)['arr_0']
 
 def log_var(var, tag, global_step, sw):
     if isinstance(var, np.ndarray):

@@ -129,7 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
     parser.add_argument('--wd', type=float, default=1e-5, help='weight decay')
     parser.add_argument('--epoches', type=int, default=config.seg_train_epoches, help='number of training epoches')
-    parser.add_argument('--continue_training', type=bool, default=True, help='continue training or launch from scratch')
+    parser.add_argument('--continue_training', type=bool, default=False, help='continue training or launch from scratch')
 
     args = parser.parse_args()
 
