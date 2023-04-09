@@ -1,4 +1,6 @@
 /.ipynb_checkpoints
 /models/*
-/train_set_raw/*
-/train_set_processed/*
+*.nii
+*.nii.gz
+*.npy
+*.npz
