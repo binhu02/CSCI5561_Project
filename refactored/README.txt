@@ -1,7 +1,0 @@
-- <root>
-    - main.ipynb
-    - models/
-    - train_set_processed/
-    - train_set_raw/
-		- HGG
-		- LGG
