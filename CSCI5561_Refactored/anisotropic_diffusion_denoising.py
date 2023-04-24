@@ -3,7 +3,7 @@ import numpy as np
 def anisodiff(img, niter=1, kappa=50, gamma=0.1, sigma=0):
     
     # Anisotropic diffusion denoising
-    # Based on the python implementation by Alistair Muldal <alistair.muldal@pharm.ox.ac.uk>
+    # Based on the python2 implementation by Alistair Muldal <alistair.muldal@pharm.ox.ac.uk>
     # Kappa controls conduction gradient, Gamma controls diffusion speed
 
     # initialize output array
