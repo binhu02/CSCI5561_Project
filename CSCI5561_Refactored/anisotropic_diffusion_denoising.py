@@ -32,9 +32,9 @@ def anisodiff(img, niter=1, kappa=50, gamma=0.1, sigma=0):
         E = np.exp(-(deltaEf/kappa)**2.)*deltaE
         S = np.exp(-(deltaSf/kappa)**2.)*deltaS
         
-        # subtract a copy that has been shifted 'North/West' by
-        # 1 pixel (this needs to be here???)
-        # according to Alistair, "Just don't ask"
+        # subtract a copy that has been shifted 'North/West' by 1 pixel
+        # (this needs to be here??? Breaks without it)
+        # "don't [ask] questions. just do it. trust me." - Alistair
         NS[:] = S
         EW[:] = E
         NS[1:,:] -= S[:-1,:]
