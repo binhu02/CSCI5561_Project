@@ -21,7 +21,7 @@ LEARN_RATE = 1e-4
 SSIM_SCALE = 1e-4
 MAE_SCALE = 0.25
 LR_FACTOR = 0.8
-NUM_EPOCHS = 1
+NUM_EPOCHS = 2
 
 NUM_TRAINING = 30000
 NUM_TESTING = 5000
@@ -87,29 +87,26 @@ def image_loader(mode, x_or_y, index):
     return np.load(filepath)
 
 def gen_noisy_image(img):
-    mean = random.uniform(-0.2, 0.2)
+    mean = 0
     sigma = random.uniform(0.1, 0.8)
-    scale = random.uniform(0.05, 0.15)
-    mean2 = random.uniform(-0.2, 0.2)
-    sigma2 = random.uniform(0.1, 0.8)
-    scale2 = random.uniform(0.05, 0.15)
-    noisy_img = img + scale * np.random.normal(mean, sigma, img.shape)
-    noisy_img += scale2 * (img * np.random.normal(mean2, sigma2, img.shape))
+    scale = random.uniform(0, 0.2)
+    dist = np.random.normal(mean, sigma, img.shape)
+    if random.uniform(0, 1) > 0.5:
+      noisy_img = img + scale * dist
+    else:
+      noisy_img = img + scale * (img * dist)
     return noisy_img
 
 def noisy_img_gen(idx, mode):
     img = image_loader(mode, 'x', idx)
-
+    mean = 0
+    sigma = random.uniform(0.1, 0.8)
+    scale = random.uniform(0, 0.2)
+    dist = np.random.normal(mean, sigma, img.shape)
     if random.uniform(0, 1) > 0.5:
-      mean = random.uniform(-0.2, 0.2)
-      sigma = random.uniform(0.1, 0.8)
-      scale = random.uniform(0.05, 0.15)
-      noisy_img = img + scale * np.random.normal(mean, sigma, img.shape)
+      noisy_img = img + scale * dist
     else:
-      mean2 = random.uniform(-0.2, 0.2)
-      sigma2 = random.uniform(0.1, 0.8)
-      scale2 = random.uniform(0.05, 0.15)
-      noisy_img = img + scale2 * (img * np.random.normal(mean2, sigma2, img.shape))
+      noisy_img = img + scale * (img * dist)
     return noisy_img
 
 class Data_Generator(keras.utils.Sequence):
@@ -212,25 +209,23 @@ def autoencoder_model(input_shape, activation_func=approx_gelu, loss_func='mse',
 
     return autoencoder
 
-# CBDNet architecture model, trained with a combination loss of MSE and SSIM
-def CBDNet(input_shape, activation_func=approx_gelu, loss_func=MSE_SSIM, learn_rate=LEARN_RATE):
+# CBDNet architecture model, trained with MSE
+def CBDNet(input_shape, activation_func=approx_gelu, loss_func='mse', learn_rate=LEARN_RATE):
   input_img = keras.Input(shape=input_shape)
   
-  #Noise estimation subnetwork
+  # Noise estimation subnetwork
   x = layers.Conv2D(30, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(input_img)
   x = layers.Conv2D(30, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(x)
   x = layers.Conv2D(30, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(x)
-  #x = layers.Conv2D(32, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(x)
   x = layers.Conv2D(4, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(x)
 
-  #Non Blind denoising subnetwork
+  # Non Blind denoising subnetwork
   x = layers.concatenate([x,input_img])
   conv1 = layers.Conv2D(60, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(x)
   conv2 = layers.Conv2D(60, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(conv1)
 
   pool1 = layers.AveragePooling2D(pool_size=(2,2),padding='same')(conv2)
   conv3 = layers.Conv2D(120, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(pool1)
-  #conv4 = layers.Conv2D(128, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(conv3)
   conv5 = layers.Conv2D(120, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(conv3)
 
   pool2 = layers.AveragePooling2D(pool_size=(2,2),padding='same')(conv5)
@@ -238,13 +233,10 @@ def CBDNet(input_shape, activation_func=approx_gelu, loss_func=MSE_SSIM, learn_r
   conv7 = layers.Conv2D(240, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(conv6)
   conv8 = layers.Conv2D(240, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(conv7)
   conv9 = layers.Conv2D(240, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(conv8)
-  #conv10 = layers.Conv2D(256, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(conv9)
-  #conv11 = layers.Conv2D(256, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(conv10)
 
-  upsample1 = layers.Conv2DTranspose(120, (3, 3), strides=2, activation=activation_func, kernel_initializer='he_normal',padding="same")(conv8)
+  upsample1 = layers.Conv2DTranspose(120, (3, 3), strides=2, activation=activation_func, kernel_initializer='he_normal',padding="same")(conv9)
   add1 = layers.Add()([upsample1,conv5])
   conv12 = layers.Conv2D(120, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(add1)
-  #conv13 = layers.Conv2D(128, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(conv12)
   conv14 = layers.Conv2D(120, (3, 3), activation=activation_func, kernel_initializer='he_normal',padding="same")(conv12)
 
   upsample2 = layers.Conv2DTranspose(60, (3, 3), strides=2, activation=activation_func, kernel_initializer='he_normal',padding="same")(conv14)
